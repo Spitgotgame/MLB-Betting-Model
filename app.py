@@ -37,7 +37,7 @@ def fetch_odds():
             "Expected Value": ["-"]
         })
 
-    # Dynamically generate lists based on the number of games
+    # Ensure every column has the correct number of elements
     odds_data = {
         "Game": games,
         "Moneyline Odds": [f"+{120 + (i % 3) * 10}" for i in range(num_games)],
@@ -47,7 +47,7 @@ def fetch_odds():
         "Expected Value": [f"+{round(5 + (i % 3), 2)}%" for i in range(num_games)]
     }
 
-    # Ensure all lists have the same length dynamically
+    # Ensure all columns are of the same length
     for column_name, column_data in odds_data.items():
         if len(column_data) != num_games:
             st.error(f"Error: {column_name} has a length of {len(column_data)}, but expected {num_games}!")
