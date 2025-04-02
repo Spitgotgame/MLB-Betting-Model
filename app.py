@@ -47,6 +47,10 @@ def fetch_odds():
         "Expected Value": [f"+{round(5 + (i % 3), 2)}%" for i in range(num_games)]
     }
 
+    # Debugging: Print the lengths of each column
+    for column_name, column_data in odds_data.items():
+        st.write(f"Length of {column_name}: {len(column_data)}")
+
     # Verify the lengths of all columns are equal
     for column_name, column_data in odds_data.items():
         if len(column_data) != num_games:
