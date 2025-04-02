@@ -46,24 +46,30 @@ def fetch_odds():
     }
     
     response = requests.get(BASE_URL, params=params)
+    
+    # Debugging: Output the full response from the OddsAPI
+    st.write("Full response from OddsAPI:")
+    try:
+        data = response.json()  # Parse the response as JSON
+        st.write(data)  # Display the full data to check the structure
+    except Exception as e:
+        st.write("Error parsing response as JSON:", e)
+        return pd.DataFrame({"Game": ["Error in fetching odds"], "Moneyline Odds": ["-"], "Run Line": ["-"], "Total (O/U)": ["-"], "Win Probability": ["-"], "Expected Value": ["-"]})
+
     odds_data = []
     
     if response.status_code == 200:
-        data = response.json()
-        
-        # Debug: Inspect the structure of the response
-        st.write("Full response from OddsAPI:")
-        st.write(data)
-        
         for i, game in enumerate(data):
             home_team = game['home_team']
             away_team = game['away_team']
             
             # Debug: Print bookmakers structure for each game
             st.write(f"Bookmakers for game {away_team} vs {home_team}:")
-            st.write(game.get('bookmakers', []))
+            if 'bookmakers' in game:
+                st.write(game['bookmakers'])  # Inspect bookmakers data
+            else:
+                st.write("No bookmakers data available")
             
-            # Make sure 'bookmakers' and 'h2h' are available before accessing
             try:
                 moneyline_odds = {book['title']: book['odds']['h2h'] for book in game['bookmakers'] if 'h2h' in book['odds']}
             except KeyError:
