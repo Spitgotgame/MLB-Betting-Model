@@ -37,20 +37,21 @@ def fetch_odds():
             "Expected Value": ["-"]
         })
 
-    # Ensure all lists have the same length by adjusting to num_games
+    # Ensure all lists have the same length
     odds_data = {
         "Game": games,
         "Moneyline Odds": [f"+{120 + (i % 3) * 10}" for i in range(num_games)],
         "Run Line": [f"-1.5 (+{180 + (i % 3) * 20})" for i in range(num_games)],
-        "Total (O/U)": [f"Over {8 + (i % 3)} (-110)" for i in range(num_games)],  # Ensure list length matches num_games
+        "Total (O/U)": [f"Over {8 + (i % 3)} (-110)" for i in range(num_games)],
         "Win Probability": [round(0.5 + (i % 2) * 0.1, 2) for i in range(num_games)],
         "Expected Value": [f"+{round(5 + (i % 3), 2)}%" for i in range(num_games)]
     }
 
-    # Check if all lists have the same length
-    if len(set(map(len, odds_data.values()))) != 1:
-        st.error("Odds data lists have different lengths!")
-        raise ValueError("Odds data lists have different lengths!")
+    # Verify the lengths of all columns are equal
+    for column_name, column_data in odds_data.items():
+        if len(column_data) != num_games:
+            st.error(f"Error: {column_name} has a length of {len(column_data)}, but expected {num_games}!")
+            raise ValueError(f"Column {column_name} has a length mismatch.")
 
     return pd.DataFrame(odds_data)
 
