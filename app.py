@@ -75,6 +75,11 @@ def fetch_odds():
         "Expected Value": expected_value
     }
 
+    # Debugging: Print the lengths of each column in the DataFrame
+    st.write(f"Length of DataFrame: {len(odds_data['Game'])}")
+    for col in odds_data:
+        st.write(f"Length of '{col}': {len(odds_data[col])}")
+
     return pd.DataFrame(odds_data)
 
 # Fetch and display data
@@ -91,4 +96,3 @@ st.write("The model evaluates moneyline, run line, and totals based on team and 
 
 # Footer
 st.write("Data sourced from DraftKings and MLB API. Bet responsibly!")
-
