@@ -6,7 +6,7 @@ import requests
 st.title("MLB Betting Model - DraftKings")
 
 # Replace with your actual API key from OddsAPI
-API_KEY = "YOUR_API_KEY"  # Replace this with your actual OddsAPI key
+API_KEY = "YOUR_API_KEY"  #8d8267e28eb7fb353944e3f68f496bf6
 
 # OddsAPI endpoint for MLB odds
 BASE_URL = "https://api.the-odds-api.com/v4/sports/baseball_mlb/odds"
