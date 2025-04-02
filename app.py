@@ -37,7 +37,7 @@ def fetch_odds():
             "Expected Value": ["-"]
         })
 
-    # Ensure every column has the correct number of elements
+    # Create dynamic odds data
     odds_data = {
         "Game": games,
         "Moneyline Odds": [f"+{120 + (i % 3) * 10}" for i in range(num_games)],
@@ -47,11 +47,14 @@ def fetch_odds():
         "Expected Value": [f"+{round(5 + (i % 3), 2)}%" for i in range(num_games)]  # Added dynamic Expected Value
     }
 
-    # Ensure all columns are of the same length
+    # Debugging: Check the lengths of each list
     for column_name, column_data in odds_data.items():
-        if len(column_data) != num_games:
-            st.error(f"Error: {column_name} has a length of {len(column_data)}, but expected {num_games}!")
-            raise ValueError(f"Column {column_name} has a length mismatch.")
+        st.write(f"Length of '{column_name}': {len(column_data)}")
+
+    # Ensure all columns have the same length
+    if len(set(len(col) for col in odds_data.values())) != 1:
+        st.error("Error: The lengths of the columns are not consistent!")
+        raise ValueError("Mismatch in column lengths")
 
     return pd.DataFrame(odds_data)
 
