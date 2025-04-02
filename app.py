@@ -26,16 +26,8 @@ def fetch_odds():
     games = fetch_live_games()
     num_games = len(games)
 
-    # If no games available, return an empty message
-    if num_games == 0:
-        return pd.DataFrame({
-            "Game": ["No games available"],
-            "Moneyline Odds": ["-"],
-            "Run Line": ["-"],
-            "Total (O/U)": ["-"],
-            "Win Probability": ["-"],
-            "Expected Value": ["-"]
-        })
+    # Debugging: Print lengths of all lists
+    st.write(f"Number of games: {num_games}")
 
     # Create dynamic odds data
     moneyline_odds = [f"+{120 + (i % 3) * 10}" for i in range(num_games)]
@@ -44,23 +36,34 @@ def fetch_odds():
     win_probability = [round(0.5 + (i % 2) * 0.1, 2) for i in range(num_games)]
     expected_value = [f"+{round(5 + (i % 3), 2)}%" for i in range(num_games)]
 
-    # Check if all columns are of the same length
-    lengths = [len(moneyline_odds), len(run_line), len(total_ou), len(win_probability), len(expected_value)]
-    if len(set(lengths)) != 1:
-        st.error("Error: Column lengths do not match!")
-        raise ValueError("Mismatch in column lengths")
+    # Debugging: Check lengths of each list
+    st.write(f"Length of moneyline_odds: {len(moneyline_odds)}")
+    st.write(f"Length of run_line: {len(run_line)}")
+    st.write(f"Length of total_ou: {len(total_ou)}")
+    st.write(f"Length of win_probability: {len(win_probability)}")
+    st.write(f"Length of expected_value: {len(expected_value)}")
 
-    # Padding columns with None if they are shorter than the games list
-    while len(moneyline_odds) < num_games:
+    # Ensure that all columns have the same length
+    max_length = max(len(moneyline_odds), len(run_line), len(total_ou), len(win_probability), len(expected_value), num_games)
+
+    # Padding columns with None if they are shorter than the max length
+    while len(moneyline_odds) < max_length:
         moneyline_odds.append("-")
-    while len(run_line) < num_games:
+    while len(run_line) < max_length:
         run_line.append("-")
-    while len(total_ou) < num_games:
+    while len(total_ou) < max_length:
         total_ou.append("-")
-    while len(win_probability) < num_games:
+    while len(win_probability) < max_length:
         win_probability.append("-")
-    while len(expected_value) < num_games:
+    while len(expected_value) < max_length:
         expected_value.append("-")
+
+    # Check lengths after padding
+    st.write(f"Final Length of moneyline_odds: {len(moneyline_odds)}")
+    st.write(f"Final Length of run_line: {len(run_line)}")
+    st.write(f"Final Length of total_ou: {len(total_ou)}")
+    st.write(f"Final Length of win_probability: {len(win_probability)}")
+    st.write(f"Final Length of expected_value: {len(expected_value)}")
 
     # Create the final dictionary
     odds_data = {
@@ -88,3 +91,4 @@ st.write("The model evaluates moneyline, run line, and totals based on team and 
 
 # Footer
 st.write("Data sourced from DraftKings and MLB API. Bet responsibly!")
+
