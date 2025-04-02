@@ -46,12 +46,15 @@ def fetch_odds():
     }
     
     response = requests.get(BASE_URL, params=params)
-    
-    # Debugging: Output the full response from the OddsAPI
-    st.write("Full response from OddsAPI:")
+
+    # Debugging: Output the raw response text before parsing
+    st.write("Raw response from OddsAPI:")
+    st.write(response.text)  # This will show the raw text of the API response
+
+    # Handle the case where the response is not a valid JSON
     try:
         data = response.json()  # Parse the response as JSON
-        st.write(data)  # Display the full data to check the structure
+        st.write("Response JSON parsed successfully.")
     except Exception as e:
         st.write("Error parsing response as JSON:", e)
         return pd.DataFrame({"Game": ["Error in fetching odds"], "Moneyline Odds": ["-"], "Run Line": ["-"], "Total (O/U)": ["-"], "Win Probability": ["-"], "Expected Value": ["-"]})
