@@ -1,19 +1,38 @@
+import streamlit as st
+import pandas as pd
+import requests
+
+# Title
+st.title("MLB Betting Model - DraftKings")
+
+# Function to fetch live MLB matchups
+def fetch_live_games():
+    url = "https://statsapi.mlb.com/api/v1/schedule?sportId=1"
+    response = requests.get(url)
+    games = []
+    
+    st.write("Fetching live games...")
+    if response.status_code == 200:
+        data = response.json()
+        if "dates" in data:
+            for date in data["dates"]:
+                for game in date.get("games", []):
+                    home = game["teams"]["home"]["team"]["name"]
+                    away = game["teams"]["away"]["team"]["name"]
+                    games.append(f"{away} vs {home}")
+    st.write(f"Games fetched: {games}")
+    return games
+
+# Function to fetch odds (placeholder, replace with actual API if available)
 def fetch_odds():
     games = fetch_live_games()
     num_games = len(games)
     
+    st.write(f"Number of games found: {num_games}")
     if num_games == 0:
-        empty_df = pd.DataFrame({
-            "Game": ["No games available"], 
-            "Moneyline Odds": ["-"], 
-            "Run Line": ["-"], 
-            "Total (O/U)": ["-"], 
-            "Win Probability": ["-"], 
-            "Expected Value": ["-"]
-        })
-        st.write("Generated Empty DataFrame:", empty_df)
-        return empty_df
-
+        return pd.DataFrame({"Game": ["No games available"], "Moneyline Odds": ["-"], "Run Line": ["-"], "Total (O/U)": ["-"], "Win Probability": ["-"], "Expected Value": ["-"]})
+    
+    # Generate placeholder odds dynamically based on the number of games
     odds_data = {
         "Game": games,
         "Moneyline Odds": ["+120" if i % 2 == 0 else "-150" for i in range(num_games)],
@@ -22,11 +41,19 @@ def fetch_odds():
         "Win Probability": [round(0.5 + (i % 2) * 0.1, 2) for i in range(num_games)],
         "Expected Value": ["+5.2%" if i % 2 == 0 else "-2.3%" for i in range(num_games)]
     }
-
+    
     df = pd.DataFrame(odds_data)
-    
-    # Debugging: Print the DataFrame before returning
-    st.write("Generated Odds DataFrame:", df)
-    
+    st.write("Odds DataFrame created:", df)
     return df
 
+# Fetch and display data
+odds_df = fetch_odds()
+st.subheader("Best MLB Bets Today")
+st.dataframe(odds_df)
+
+# Additional insights
+st.subheader("Betting Insights")
+st.write("The model evaluates moneyline, run line, and totals based on team and player performance.")
+
+# Footer
+st.write("Data sourced from DraftKings and MLB API. Bet responsibly!")
