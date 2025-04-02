@@ -28,8 +28,7 @@ def fetch_odds():
 
     # Debugging: Print lengths of all lists
     st.write(f"Number of games: {num_games}")
-
-    # Check if there are any games, otherwise handle the case where no data is available
+    
     if num_games == 0:
         st.error("No games available for today.")
         return pd.DataFrame()  # Return an empty DataFrame if no games found
@@ -41,20 +40,44 @@ def fetch_odds():
     win_probability = [round(0.5 + (i % 2) * 0.1, 2) for i in range(num_games)]
     expected_value = [f"+{round(5 + (i % 3), 2)}%" for i in range(num_games)]
 
+    # Check if the lengths of all lists match
+    list_lengths = {
+        "games": len(games),
+        "moneyline_odds": len(moneyline_odds),
+        "run_line": len(run_line),
+        "total_ou": len(total_ou),
+        "win_probability": len(win_probability),
+        "expected_value": len(expected_value),
+    }
+
+    st.write("List lengths:", list_lengths)
+
     # Ensure all lists are padded to the same length as `games`
     max_length = len(games)
+    lists_to_pad = [moneyline_odds, run_line, total_ou, win_probability, expected_value]
 
-    # Pad lists if necessary (if they are shorter than the max length)
-    while len(moneyline_odds) < max_length:
-        moneyline_odds.append("-")
-    while len(run_line) < max_length:
-        run_line.append("-")
-    while len(total_ou) < max_length:
-        total_ou.append("-")
-    while len(win_probability) < max_length:
-        win_probability.append("-")
-    while len(expected_value) < max_length:
-        expected_value.append("-")
+    # Pad lists if necessary
+    for lst in lists_to_pad:
+        while len(lst) < max_length:
+            lst.append("-")
+
+    # Verify padding worked
+    list_lengths_after_padding = {
+        "moneyline_odds": len(moneyline_odds),
+        "run_line": len(run_line),
+        "total_ou": len(total_ou),
+        "win_probability": len(win_probability),
+        "expected_value": len(expected_value),
+    }
+
+    st.write("List lengths after padding:", list_lengths_after_padding)
+
+    # If lengths are mismatched even after padding, return an error
+    if len(moneyline_odds) != max_length or len(run_line) != max_length or \
+       len(total_ou) != max_length or len(win_probability) != max_length or \
+       len(expected_value) != max_length:
+        st.error("Error: Mismatched list lengths after padding!")
+        return pd.DataFrame()  # Return an empty DataFrame
 
     # Create the final dictionary with padded lists
     odds_data = {
