@@ -10,7 +10,7 @@ def fetch_live_games():
     url = "https://statsapi.mlb.com/api/v1/schedule?sportId=1"
     response = requests.get(url)
     games = []
-    
+
     if response.status_code == 200:
         data = response.json()
         if "dates" in data:
@@ -25,26 +25,42 @@ def fetch_live_games():
 def fetch_odds():
     games = fetch_live_games()
     num_games = len(games)
-    
+
+    # If no games available, return an empty message
     if num_games == 0:
-        return pd.DataFrame({"Game": ["No games available"], "Moneyline Odds": ["-"], "Run Line": ["-"], "Total (O/U)": ["-"], "Win Probability": ["-"], "Expected Value": ["-"]})
-    
-    # Generate placeholder odds dynamically based on the number of games
+        return pd.DataFrame({
+            "Game": ["No games available"],
+            "Moneyline Odds": ["-"],
+            "Run Line": ["-"],
+            "Total (O/U)": ["-"],
+            "Win Probability": ["-"],
+            "Expected Value": ["-"]
+        })
+
+    # Ensure all lists have the same length by adjusting to num_games
     odds_data = {
         "Game": games,
-        "Moneyline Odds": ["+120" if i % 2 == 0 else "-150" for i in range(num_games)],
-        "Run Line": ["-1.5 (+180)" if i % 2 == 0 else "+1.5 (-140)" for i in range(num_games)],
-        "Total (O/U)": ["Over 8.5 (-110)" if i % 2 == 0 else "Under 9.5 (-105)" for i in range(num_games)],
+        "Moneyline Odds": [f"+{120 + (i % 3) * 10}" for i in range(num_games)],
+        "Run Line": [f"-1.5 (+{180 + (i % 3) * 20})" for i in range(num_games)],
+        "Total (O/U)": [f"Over {8 + (i % 3)} (-110)" for i in range(num_games)],  # Ensure list length matches num_games
         "Win Probability": [round(0.5 + (i % 2) * 0.1, 2) for i in range(num_games)],
-        "Expected Value": ["+5.2%" if i % 2 == 0 else "-2.3%" for i in range(num_games)]
+        "Expected Value": [f"+{round(5 + (i % 3), 2)}%" for i in range(num_games)]
     }
-    
+
+    # Check if all lists have the same length
+    if len(set(map(len, odds_data.values()))) != 1:
+        st.error("Odds data lists have different lengths!")
+        raise ValueError("Odds data lists have different lengths!")
+
     return pd.DataFrame(odds_data)
 
 # Fetch and display data
-odds_df = fetch_odds()
-st.subheader("Best MLB Bets Today")
-st.dataframe(odds_df)
+try:
+    odds_df = fetch_odds()
+    st.subheader("Best MLB Bets Today")
+    st.dataframe(odds_df)
+except ValueError as e:
+    st.error(f"Error: {str(e)}")
 
 # Additional insights
 st.subheader("Betting Insights")
