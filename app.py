@@ -27,19 +27,19 @@ def fetch_odds():
     num_games = len(games)
     
     if num_games == 0:
-        return pd.DataFrame({"Game": ["No games available"]})
+        return pd.DataFrame({"Game": ["No games available"], "Moneyline Odds": ["-"], "Run Line": ["-"], "Total (O/U)": ["-"], "Win Probability": ["-"], "Expected Value": ["-"]})
     
-    odds_data = {
-        "Game": games,
-        "Moneyline Odds": ["+120", "-150", "+200"] * (num_games // 3 + 1),
-        "Run Line": ["-1.5 (+180)", "+1.5 (-140)", "-1.5 (+220)"] * (num_games // 3 + 1),
-        "Total (O/U)": ["Over 8.5 (-110)", "Under 9.5 (-105)", "Over 7.5 (+100)"] * (num_games // 3 + 1),
-        "Win Probability": [0.55, 0.62, 0.48] * (num_games // 3 + 1),
-        "Expected Value": ["+5.2%", "-2.3%", "+7.1%"] * (num_games // 3 + 1)
+    odds_templates = {
+        "Moneyline Odds": ["+120", "-150", "+200"],
+        "Run Line": ["-1.5 (+180)", "+1.5 (-140)", "-1.5 (+220)"],
+        "Total (O/U)": ["Over 8.5 (-110)", "Under 9.5 (-105)", "Over 7.5 (+100)"],
+        "Win Probability": [0.55, 0.62, 0.48],
+        "Expected Value": ["+5.2%", "-2.3%", "+7.1%"]
     }
     
-    for key in odds_data:
-        odds_data[key] = odds_data[key][:num_games]  # Ensure correct list length
+    odds_data = {"Game": games}
+    for key, values in odds_templates.items():
+        odds_data[key] = (values * ((num_games // len(values)) + 1))[:num_games]  # Dynamically adjust list size
     
     return pd.DataFrame(odds_data)
 
