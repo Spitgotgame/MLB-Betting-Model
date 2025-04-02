@@ -58,6 +58,8 @@ def fetch_odds():
     # Debugging: Check the data types after conversion
     st.write("Data types after conversion:")
     st.write(df.dtypes)
+    st.write("First few rows of the dataframe for review:")
+    st.write(df.head())
 
     st.write("Odds DataFrame created:", df)
     return df
@@ -67,8 +69,12 @@ odds_df = fetch_odds()
 
 # Ensure 'Expected Value' column is numeric and filter for positive expected values
 odds_df["Expected Value"] = pd.to_numeric(odds_df["Expected Value"], errors='coerce')
+odds_df["Expected Value"].fillna(0, inplace=True)
+
+# Filter and sort the dataframe to show only positive expected values
 odds_df = odds_df[odds_df["Expected Value"] > 0].sort_values(by="Expected Value", ascending=False)
 
+# Show filtered and sorted dataframe
 st.subheader("Best MLB Bets Today")
 st.dataframe(odds_df.style.applymap(lambda x: 'background-color: lightgreen' if isinstance(x, float) and x > 0 else '', subset=['Expected Value']))
 
