@@ -5,6 +5,12 @@ import requests
 # Title
 st.title("MLB Betting Model - DraftKings")
 
+# Replace with your actual API key from OddsAPI
+API_KEY = "YOUR_API_KEY"  # Replace this with your actual OddsAPI key
+
+# OddsAPI endpoint for MLB odds
+BASE_URL = "https://api.the-odds-api.com/v4/sports/baseball_mlb/odds"
+
 # Function to fetch live MLB matchups
 def fetch_live_games():
     url = "https://statsapi.mlb.com/api/v1/schedule?sportId=1"
@@ -23,7 +29,7 @@ def fetch_live_games():
     st.write(f"Games fetched: {games}")
     return games
 
-# Function to fetch odds (placeholder, replace with actual API if available)
+# Function to fetch real odds from OddsAPI
 def fetch_odds():
     games = fetch_live_games()
     num_games = len(games)
@@ -31,16 +37,38 @@ def fetch_odds():
     st.write(f"Number of games found: {num_games}")
     if num_games == 0:
         return pd.DataFrame({"Game": ["No games available"], "Moneyline Odds": ["-"], "Run Line": ["-"], "Total (O/U)": ["-"], "Win Probability": ["-"], "Expected Value": ["-"]})
-    
-    # Generate placeholder odds dynamically based on the number of games
-    odds_data = {
-        "Game": games,
-        "Moneyline Odds": ["+120" if i % 2 == 0 else "-150" for i in range(num_games)],
-        "Run Line": ["-1.5 (+180)" if i % 2 == 0 else "+1.5 (-140)" for i in range(num_games)],
-        "Total (O/U)": ["Over 8.5 (-110)" if i % 2 == 0 else "Under 9.5 (-105)" for i in range(num_games)],
-        "Win Probability": [round(0.5 + (i % 2) * 0.1, 2) for i in range(num_games)],
-        "Expected Value": [5.2 if i % 2 == 0 else -2.3 for i in range(num_games)]
+
+    # Make the API request to fetch real odds from OddsAPI
+    params = {
+        'apiKey': API_KEY,
+        'regions': 'us',  # You can specify regions like 'us' or 'eu'
+        'markets': 'h2h,spreads,totals',  # Betting markets: head-to-head, spread, totals
     }
+    
+    response = requests.get(BASE_URL, params=params)
+    odds_data = []
+    
+    if response.status_code == 200:
+        data = response.json()
+        for game in data:
+            home_team = game['home_team']
+            away_team = game['away_team']
+            moneyline_odds = {book['title']: book['odds']['h2h'] for book in game['bookmakers']}
+            run_line = {book['title']: book['odds']['spreads'] for book in game['bookmakers']}
+            total_ou = {book['title']: book['odds']['totals'] for book in game['bookmakers']}
+            
+            odds_data.append({
+                "Game": f"{away_team} vs {home_team}",
+                "Moneyline Odds": moneyline_odds,
+                "Run Line": run_line,
+                "Total (O/U)": total_ou,
+                "Win Probability": round(0.5 + (i % 2) * 0.1, 2),  # Replace with actual win probability data if available
+                "Expected Value": 5.2 if i % 2 == 0 else -2.3  # Replace with expected value calculation
+            })
+    
+    # If no data is returned, show a default empty dataframe
+    if not odds_data:
+        return pd.DataFrame({"Game": ["No odds available"], "Moneyline Odds": ["-"], "Run Line": ["-"], "Total (O/U)": ["-"], "Win Probability": ["-"], "Expected Value": ["-"]})
     
     df = pd.DataFrame(odds_data)
     st.write("Odds DataFrame created:", df)
