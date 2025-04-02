@@ -2,12 +2,15 @@ import streamlit as st
 import pandas as pd
 import requests
 
+# Your API Key
+API_KEY = 'fa612feb0c3313f6b04958c46016f9fa'
+
 # Title
 st.title("MLB Betting Model - DraftKings")
 
 # Function to fetch live MLB matchups
 def fetch_live_games():
-    url = "https://statsapi.mlb.com/api/v1/schedule?sportId=1"
+    url = f"https://statsapi.mlb.com/api/v1/schedule?sportId=1&api_key={API_KEY}"
     response = requests.get(url)
     games = []
     
