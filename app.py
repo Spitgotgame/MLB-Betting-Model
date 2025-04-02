@@ -72,8 +72,12 @@ def fetch_odds():
     
     df = pd.DataFrame(odds_data)
 
+    # Debug: Print the raw data before any processing
+    st.write("Raw DataFrame Before Processing:")
+    st.write(df)
+    
     # Debug: Check column data types before proceeding
-    st.write("Data types of each column:")
+    st.write("Data types of each column before conversion:")
     st.write(df.dtypes)
 
     # Ensure all columns containing numeric data are converted to numbers, handling errors gracefully
@@ -84,15 +88,17 @@ def fetch_odds():
     df["Expected Value"].fillna(0, inplace=True)
     df["Win Probability"].fillna(0, inplace=True)
 
-    st.write("Odds DataFrame created:", df)
+    # Debug: Check data types and contents after conversion
+    st.write("Data types after conversion:")
+    st.write(df.dtypes)
+
+    st.write("Processed DataFrame:")
+    st.write(df)
+    
     return df
 
 # Fetch and display data
 odds_df = fetch_odds()
-
-# Debug: Check column data types after conversion
-st.write("Data types after conversion:")
-st.write(odds_df.dtypes)
 
 # Filter and sort for best bets
 best_bets_df = odds_df[odds_df["Expected Value"] > 0].sort_values(by="Expected Value", ascending=False)
