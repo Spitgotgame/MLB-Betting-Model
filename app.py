@@ -26,19 +26,22 @@ def fetch_odds():
     games = fetch_live_games()
     num_games = len(games)
     
+    if num_games == 0:
+        return pd.DataFrame({"Game": ["No games available"]})
+    
     odds_data = {
-        "Moneyline Odds": ["+120", "-150", "+200"] * num_games,
-        "Run Line": ["-1.5 (+180)", "+1.5 (-140)", "-1.5 (+220)"] * num_games,
-        "Total (O/U)": ["Over 8.5 (-110)", "Under 9.5 (-105)", "Over 7.5 (+100)"] * num_games,
-        "Win Probability": [0.55, 0.62, 0.48] * num_games,
-        "Expected Value": ["+5.2%", "-2.3%", "+7.1%"] * num_games
+        "Game": games,
+        "Moneyline Odds": ["+120", "-150", "+200"] * (num_games // 3 + 1),
+        "Run Line": ["-1.5 (+180)", "+1.5 (-140)", "-1.5 (+220)"] * (num_games // 3 + 1),
+        "Total (O/U)": ["Over 8.5 (-110)", "Under 9.5 (-105)", "Over 7.5 (+100)"] * (num_games // 3 + 1),
+        "Win Probability": [0.55, 0.62, 0.48] * (num_games // 3 + 1),
+        "Expected Value": ["+5.2%", "-2.3%", "+7.1%"] * (num_games // 3 + 1)
     }
     
     for key in odds_data:
         odds_data[key] = odds_data[key][:num_games]  # Ensure correct list length
     
-    data = {"Game": games if games else ["No games available"], **odds_data}
-    return pd.DataFrame(data)
+    return pd.DataFrame(odds_data)
 
 # Fetch and display data
 odds_df = fetch_odds()
