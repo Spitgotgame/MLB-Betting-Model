@@ -71,6 +71,13 @@ def fetch_odds():
         return pd.DataFrame({"Game": ["No odds available"], "Moneyline Odds": ["-"], "Run Line": ["-"], "Total (O/U)": ["-"], "Win Probability": ["-"], "Expected Value": ["-"]})
     
     df = pd.DataFrame(odds_data)
+    
+    # Convert the "Expected Value" column to numeric, handling errors by replacing non-numeric values with NaN
+    df["Expected Value"] = pd.to_numeric(df["Expected Value"], errors='coerce')
+    
+    # Fill any NaN values in "Expected Value" with 0
+    df["Expected Value"].fillna(0, inplace=True)
+    
     st.write("Odds DataFrame created:", df)
     return df
 
