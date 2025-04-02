@@ -72,23 +72,19 @@ def fetch_odds():
     
     df = pd.DataFrame(odds_data)
 
-    # Debug: Print the raw data before any processing
+    # Debugging: Output the raw data before conversion
     st.write("Raw DataFrame Before Processing:")
     st.write(df)
-    
-    # Debug: Check column data types before proceeding
-    st.write("Data types of each column before conversion:")
-    st.write(df.dtypes)
 
-    # Ensure all columns containing numeric data are converted to numbers, handling errors gracefully
-    df["Expected Value"] = pd.to_numeric(df["Expected Value"], errors='coerce')  # Handle non-numeric by converting to NaN
+    # Convert 'Win Probability' and 'Expected Value' columns to numeric, handling errors
+    df["Expected Value"] = pd.to_numeric(df["Expected Value"], errors='coerce')  # Convert to numeric, replace errors with NaN
     df["Win Probability"] = pd.to_numeric(df["Win Probability"], errors='coerce')  # Same for Win Probability
 
-    # Fill any NaN values in "Expected Value" or "Win Probability" with 0
+    # Fill any NaN values with 0 (or any other appropriate strategy)
     df["Expected Value"].fillna(0, inplace=True)
     df["Win Probability"].fillna(0, inplace=True)
 
-    # Debug: Check data types and contents after conversion
+    # Debugging: Check the data types after conversion
     st.write("Data types after conversion:")
     st.write(df.dtypes)
 
@@ -100,7 +96,7 @@ def fetch_odds():
 # Fetch and display data
 odds_df = fetch_odds()
 
-# Filter and sort for best bets
+# Filter and sort for best bets (based on Expected Value)
 best_bets_df = odds_df[odds_df["Expected Value"] > 0].sort_values(by="Expected Value", ascending=False)
 
 st.subheader("Best MLB Bets Today")
