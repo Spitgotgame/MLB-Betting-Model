@@ -55,8 +55,10 @@ def fetch_odds():
     df["Expected Value"].fillna(0, inplace=True)
     df["Win Probability"].fillna(0, inplace=True)
 
-    # Ensure that the 'Expected Value' column is a valid numeric type
-    df["Expected Value"] = pd.to_numeric(df["Expected Value"], errors='coerce')
+    # Check for non-numeric types in the Expected Value column
+    if not pd.api.types.is_numeric_dtype(df["Expected Value"]):
+        st.error("There are non-numeric values in the 'Expected Value' column!")
+        return pd.DataFrame()
 
     # Debugging: Check the data types after conversion
     st.write("Data types after conversion:")
@@ -70,23 +72,27 @@ def fetch_odds():
 # Fetch and display data
 odds_df = fetch_odds()
 
-# Filter for positive expected values and sort them
-odds_df = odds_df[odds_df["Expected Value"] > 0]
+# Check if the dataframe is empty after fetching
+if odds_df.empty:
+    st.write("No valid data to display.")
+else:
+    # Filter for positive expected values and sort them
+    odds_df = odds_df[odds_df["Expected Value"] > 0]
 
-# Double check that 'Expected Value' column is now numeric and sorted
-odds_df["Expected Value"] = pd.to_numeric(odds_df["Expected Value"], errors='coerce')
-odds_df["Expected Value"].fillna(0, inplace=True)
+    # Double check that 'Expected Value' column is now numeric and sorted
+    odds_df["Expected Value"] = pd.to_numeric(odds_df["Expected Value"], errors='coerce')
+    odds_df["Expected Value"].fillna(0, inplace=True)
 
-# Sort the dataframe based on Expected Value
-odds_df = odds_df.sort_values(by="Expected Value", ascending=False)
+    # Sort the dataframe based on Expected Value
+    odds_df = odds_df.sort_values(by="Expected Value", ascending=False)
 
-# Show filtered and sorted dataframe
-st.subheader("Best MLB Bets Today")
-st.dataframe(odds_df.style.applymap(lambda x: 'background-color: lightgreen' if isinstance(x, float) and x > 0 else '', subset=['Expected Value']))
+    # Show filtered and sorted dataframe
+    st.subheader("Best MLB Bets Today")
+    st.dataframe(odds_df.style.applymap(lambda x: 'background-color: lightgreen' if isinstance(x, float) and x > 0 else '', subset=['Expected Value']))
 
-# Additional insights
-st.subheader("Betting Insights")
-st.write("The model evaluates moneyline, run line, and totals based on team and player performance.")
+    # Additional insights
+    st.subheader("Betting Insights")
+    st.write("The model evaluates moneyline, run line, and totals based on team and player performance.")
 
 # Footer
 st.write("Data sourced from DraftKings and MLB API. Bet responsibly!")
