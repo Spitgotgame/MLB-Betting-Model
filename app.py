@@ -60,6 +60,10 @@ def fetch_odds():
         st.error("There are non-numeric values in the 'Expected Value' column!")
         return pd.DataFrame()
 
+    # Debugging: Check the content of 'Expected Value' column before comparison
+    st.write("Content of 'Expected Value' column before comparison:")
+    st.write(df["Expected Value"])
+
     # Debugging: Check the data types after conversion
     st.write("Data types after conversion:")
     st.write(df.dtypes)
