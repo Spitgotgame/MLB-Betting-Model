@@ -26,12 +26,10 @@ def fetch_odds():
     games = fetch_live_games()
     num_games = len(games)
 
-    # Debugging: Print lengths of all lists
-    st.write(f"Number of games: {num_games}")
-    
+    # Check if there are no games available
     if num_games == 0:
         st.error("No games available for today.")
-        return pd.DataFrame()  # Return an empty DataFrame if no games found
+        return None  # Return None if no games are found
 
     # Create dynamic odds data
     moneyline_odds = [f"+{120 + (i % 3) * 10}" for i in range(num_games)]
@@ -50,7 +48,7 @@ def fetch_odds():
         "expected_value": len(expected_value),
     }
 
-    st.write("List lengths:", list_lengths)
+    st.write("List lengths before padding:", list_lengths)
 
     # Ensure all lists are padded to the same length as `games`
     max_length = len(games)
@@ -72,13 +70,6 @@ def fetch_odds():
 
     st.write("List lengths after padding:", list_lengths_after_padding)
 
-    # If lengths are mismatched even after padding, return an error
-    if len(moneyline_odds) != max_length or len(run_line) != max_length or \
-       len(total_ou) != max_length or len(win_probability) != max_length or \
-       len(expected_value) != max_length:
-        st.error("Error: Mismatched list lengths after padding!")
-        return pd.DataFrame()  # Return an empty DataFrame
-
     # Create the final dictionary with padded lists
     odds_data = {
         "Game": games,
@@ -89,18 +80,19 @@ def fetch_odds():
         "Expected Value": expected_value
     }
 
-    # Create the DataFrame
-    return pd.DataFrame(odds_data)
+    return odds_data
 
 # Fetch and display data
-try:
-    odds_df = fetch_odds()
-    if not odds_df.empty:
-        st.subheader("Best MLB Bets Today")
-        st.dataframe(odds_df)
-except ValueError as e:
-    st.error(f"Error: {str(e)}")
+odds_data = fetch_odds()
 
+# Only proceed with creating DataFrame if odds data exists
+if odds_data:
+    odds_df = pd.DataFrame(odds_data)
+    st.subheader("Best MLB Bets Today")
+    st.dataframe(odds_df)
+else:
+    st.error("No data to display.")
+    
 # Additional insights
 st.subheader("Betting Insights")
 st.write("The model evaluates moneyline, run line, and totals based on team and player performance.")
