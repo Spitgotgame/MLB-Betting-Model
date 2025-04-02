@@ -12,7 +12,6 @@ def fetch_odds():
             "Win Probability": ["-"], 
             "Expected Value": ["-"]
         })
-
     # Generate placeholder odds dynamically based on the number of games
     moneyline_odds = ["+120" if i % 2 == 0 else "-150" for i in range(num_games)]
     run_line = ["-1.5 (+180)" if i % 2 == 0 else "+1.5 (-140)" for i in range(num_games)]
@@ -29,12 +28,9 @@ def fetch_odds():
         "win_probability": len(win_probability),
         "expected_value": len(expected_value),
     }
-    
     st.write("List lengths:", list_lengths)  # Debugging output in Streamlit
-
     # Ensure all lists are the same length before creating DataFrame
     assert all(len(lst) == num_games for lst in [moneyline_odds, run_line, total_ou, win_probability, expected_value]), "List lengths do not match!"
-
     # Create DataFrame
     odds_data = {
         "Game": games,
@@ -44,5 +40,4 @@ def fetch_odds():
         "Win Probability": win_probability,
         "Expected Value": expected_value
     }
-
     return pd.DataFrame(odds_data)
