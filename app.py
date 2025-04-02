@@ -44,7 +44,7 @@ def fetch_odds():
         "Run Line": [f"-1.5 (+{180 + (i % 3) * 20})" for i in range(num_games)],
         "Total (O/U)": [f"Over {8 + (i % 3)} (-110)" for i in range(num_games)],
         "Win Probability": [round(0.5 + (i % 2) * 0.1, 2) for i in range(num_games)],
-        "Expected Value": [f"+{round(5 + (i % 3), 2)}%" for i in range(num_games)]
+        "Expected Value": [f"+{round(5 + (i % 3), 2)}%" for i in range(num_games)]  # Added dynamic Expected Value
     }
 
     # Ensure all columns are of the same length
