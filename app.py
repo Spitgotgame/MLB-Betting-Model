@@ -1,102 +1,104 @@
-import streamlit as st
-import pandas as pd
 import requests
+import pandas as pd
+import streamlit as st
 
-# Your API Key
-API_KEY = 'fa612feb0c3313f6b04958c46016f9fa'
+# Your API key for fetching odds
+API_KEY = 'fa612feb0c3313f6b04958c46016f9fa'  # Replace with your actual API key
+SPORT = 'baseball_mlb'
+BASE_URL = f'https://api.the-odds-api.com/v4/sports/{SPORT}/odds'
 
-# Title
-st.title("MLB Betting Model - DraftKings")
-
-# Function to fetch live MLB matchups
-def fetch_live_games():
-    url = f"https://statsapi.mlb.com/api/v1/schedule?sportId=1&api_key={API_KEY}"
-    response = requests.get(url)
-    games = []
-    
-    st.write("Fetching live games...")
-    if response.status_code == 200:
-        data = response.json()
-        if "dates" in data:
-            for date in data["dates"]:
-                for game in date.get("games", []):
-                    home = game["teams"]["home"]["team"]["name"]
-                    away = game["teams"]["away"]["team"]["name"]
-                    games.append(f"{away} vs {home}")
-    st.write(f"Games fetched: {games}")
-    return games
-
-# Function to fetch odds (placeholder, replace with actual API if available)
 def fetch_odds():
-    games = fetch_live_games()
-    num_games = len(games)
-    
-    st.write(f"Number of games found: {num_games}")
-    if num_games == 0:
-        return pd.DataFrame({"Game": ["No games available"], "Moneyline Odds": ["-"], "Run Line": ["-"], "Total (O/U)": ["-"], "Win Probability": ["-"], "Expected Value": ["-"]})
-    
-    # Generate placeholder odds dynamically based on the number of games
-    odds_data = {
-        "Game": games,
-        "Moneyline Odds": ["+120" if i % 2 == 0 else "-150" for i in range(num_games)],
-        "Run Line": ["-1.5 (+180)" if i % 2 == 0 else "+1.5 (-140)" for i in range(num_games)],
-        "Total (O/U)": ["Over 8.5 (-110)" if i % 2 == 0 else "Under 9.5 (-105)" for i in range(num_games)],
-        "Win Probability": [round(0.5 + (i % 2) * 0.1, 2) for i in range(num_games)],
-        "Expected Value": [5.2 if i % 2 == 0 else -2.3 for i in range(num_games)]  # Replace with expected value calculation
-    }
-    
-    df = pd.DataFrame(odds_data)
-    
-    # Convert 'Expected Value' and 'Win Probability' to numeric, handling errors
-    df["Expected Value"] = pd.to_numeric(df["Expected Value"], errors='coerce')  # Convert to numeric, replace errors with NaN
-    df["Win Probability"] = pd.to_numeric(df["Win Probability"], errors='coerce')  # Same for Win Probability
-    
-    # Fill any NaN values with 0 (or any other appropriate strategy)
-    df["Expected Value"].fillna(0, inplace=True)
-    df["Win Probability"].fillna(0, inplace=True)
+    """Fetch real-time odds for MLB games."""
+    try:
+        # Request the odds data from the API
+        params = {
+            'apiKey': API_KEY,
+            'regions': 'us',  # US odds
+            'markets': 'h2h,totals',  # Moneyline (h2h) and totals (over/under)
+        }
+        response = requests.get(BASE_URL, params=params)
+        response.raise_for_status()
+        data = response.json()
 
-    # Check for non-numeric types in the Expected Value column
-    if not pd.api.types.is_numeric_dtype(df["Expected Value"]):
-        st.error("There are non-numeric values in the 'Expected Value' column!")
-        return pd.DataFrame()
+        # Parse the odds data
+        games = []
+        for game in data:
+            game_info = {
+                'home_team': game['home_team'],
+                'away_team': game['away_team'],
+                'moneyline': {book['title']: book['odds']['h2h'] for book in game['bookmakers']},
+                'totals': {book['title']: book['odds']['totals'] for book in game['bookmakers']},
+            }
+            games.append(game_info)
 
-    # Debugging: Check the content of 'Expected Value' column before comparison
-    st.write("Content of 'Expected Value' column before comparison:")
-    st.write(df["Expected Value"])
+        # Convert the odds data into a DataFrame
+        odds_df = pd.DataFrame(games)
+        return odds_df
 
-    # Debugging: Check the data types after conversion
-    st.write("Data types after conversion:")
-    st.write(df.dtypes)
-    st.write("First few rows of the dataframe for review:")
-    st.write(df.head())
+    except Exception as e:
+        print("Error fetching odds:", e)
+        return pd.DataFrame()  # Return empty DataFrame on error
 
-    st.write("Odds DataFrame created:", df)
-    return df
+def calculate_expected_value(odds, probability):
+    """Calculate the expected value of a bet given the odds and probability."""
+    decimal_odds = odds + 100 if odds > 0 else 100 / abs(odds) + 1
+    expected_value = (probability * decimal_odds) - (1 - probability)
+    return expected_value
 
-# Fetch and display data
-odds_df = fetch_odds()
+def evaluate_bets(odds_df, model_predictions):
+    """Evaluate which bets to place based on expected value."""
+    bets = []
+    for index, row in odds_df.iterrows():
+        home_team = row['home_team']
+        away_team = row['away_team']
 
-# Check if the dataframe is empty after fetching
-if odds_df.empty:
-    st.write("No valid data to display.")
-else:
-    # Filter for positive expected values and sort them
-    odds_df = odds_df[odds_df["Expected Value"] > 0]
+        # Get model's predicted probabilities for each team
+        home_prob = model_predictions.get(home_team, 0.50)  # Default to 50% if model doesn't have a prediction
+        away_prob = model_predictions.get(away_team, 0.50)  # Default to 50% if model doesn't have a prediction
 
-    # Double check that 'Expected Value' column is now numeric and sorted
-    odds_df["Expected Value"] = pd.to_numeric(odds_df["Expected Value"], errors='coerce')
-    odds_df["Expected Value"].fillna(0, inplace=True)
+        # Compare model's probabilities with the current odds to calculate expected value
+        home_odds = row['moneyline'].get('DraftKings', None)  # Example using DraftKings
+        away_odds = row['moneyline'].get('DraftKings', None)
 
-    # Sort the dataframe based on Expected Value
-    odds_df = odds_df.sort_values(by="Expected Value", ascending=False)
+        # Calculate expected value for home and away team
+        if home_odds and away_odds:
+            home_ev = calculate_expected_value(home_odds[0], home_prob)
+            away_ev = calculate_expected_value(away_odds[0], away_prob)
 
-    # Show filtered and sorted dataframe
-    st.subheader("Best MLB Bets Today")
-    st.dataframe(odds_df.style.applymap(lambda x: 'background-color: lightgreen' if isinstance(x, float) and x > 0 else '', subset=['Expected Value']))
+            # If the expected value is positive, it's a good bet
+            if home_ev > 0:
+                bets.append({'team': home_team, 'bet': 'moneyline', 'ev': home_ev, 'odds': home_odds[0]})
+            if away_ev > 0:
+                bets.append({'team': away_team, 'bet': 'moneyline', 'ev': away_ev, 'odds': away_odds[0]})
 
-    # Additional insights
-    st.subheader("Betting Insights")
-    st.write("The model evaluates moneyline, run line, and totals based on team and player performance.")
+    return pd.DataFrame(bets)
 
-# Footer
-st.write("Data sourced from DraftKings and MLB API. Bet responsibly!")
+# Streamlit input for model predictions
+st.title("MLB Betting Model")
+
+model_predictions_input = st.text_area(
+    "Enter model predictions as a dictionary (e.g., {'Team A': 0.55, 'Team B': 0.45})",
+    '{"Team A": 0.55, "Team B": 0.45, "Team C": 0.60, "Team D": 0.40}'
+)
+
+# Convert input to a dictionary
+try:
+    model_predictions = eval(model_predictions_input)
+except:
+    st.error("Invalid format. Ensure your predictions are in the correct dictionary format.")
+
+# Fetch odds and evaluate bets
+if model_predictions:
+    odds_df = fetch_odds()  # Get the latest odds
+    if not odds_df.empty:
+        bets_df = evaluate_bets(odds_df, model_predictions)
+        bets_df = bets_df.sort_values(by='ev', ascending=False)  # Sort by expected value
+
+        # Display the recommended bets
+        if not bets_df.empty:
+            st.write("Recommended Bets with Positive EV:")
+            st.dataframe(bets_df)
+        else:
+            st.write("No recommended bets at the moment.")
+    else:
+        st.write("Unable to fetch the odds. Please try again later.")
