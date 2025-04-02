@@ -50,12 +50,34 @@ def fetch_odds():
     
     if response.status_code == 200:
         data = response.json()
+        
+        # Debug: Inspect the structure of the response
+        st.write("Full response from OddsAPI:")
+        st.write(data)
+        
         for i, game in enumerate(data):
             home_team = game['home_team']
             away_team = game['away_team']
-            moneyline_odds = {book['title']: book['odds']['h2h'] for book in game['bookmakers']}
-            run_line = {book['title']: book['odds']['spreads'] for book in game['bookmakers']}
-            total_ou = {book['title']: book['odds']['totals'] for book in game['bookmakers']}
+            
+            # Debug: Print bookmakers structure for each game
+            st.write(f"Bookmakers for game {away_team} vs {home_team}:")
+            st.write(game.get('bookmakers', []))
+            
+            # Make sure 'bookmakers' and 'h2h' are available before accessing
+            try:
+                moneyline_odds = {book['title']: book['odds']['h2h'] for book in game['bookmakers'] if 'h2h' in book['odds']}
+            except KeyError:
+                moneyline_odds = "No moneyline odds available"
+            
+            try:
+                run_line = {book['title']: book['odds']['spreads'] for book in game['bookmakers'] if 'spreads' in book['odds']}
+            except KeyError:
+                run_line = "No run line odds available"
+            
+            try:
+                total_ou = {book['title']: book['odds']['totals'] for book in game['bookmakers'] if 'totals' in book['odds']}
+            except KeyError:
+                total_ou = "No total odds available"
             
             odds_data.append({
                 "Game": f"{away_team} vs {home_team}",
