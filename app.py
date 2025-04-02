@@ -2,7 +2,6 @@
 def fetch_odds():
     games = fetch_live_games()
     num_games = len(games)
-
     if num_games == 0:
         return pd.DataFrame({
             "Game": ["No games available"], 
@@ -18,7 +17,6 @@ def fetch_odds():
     total_ou = ["Over 8.5 (-110)" if i % 2 == 0 else "Under 9.5 (-105)" for i in range(num_games)]
     win_probability = [round(0.5 + (i % 2) * 0.1, 2) for i in range(num_games)]
     expected_value = ["+5.2%" if i % 2 == 0 else "-2.3%" for i in range(num_games)]
-
     # Debugging: Log list lengths before creating DataFrame
     list_lengths = {
         "games": len(games),
