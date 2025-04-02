@@ -72,3 +72,6 @@ except ValueError as e:
 # Additional insights
 st.subheader("Betting Insights")
 st.write("The model evaluates moneyline, run line, and totals based on team and player performance.")
+
+# Footer
+st.write("Data sourced from DraftKings and MLB API. Bet responsibly!")
