@@ -38,23 +38,26 @@ def fetch_odds():
         })
 
     # Create dynamic odds data
+    moneyline_odds = [f"+{120 + (i % 3) * 10}" for i in range(num_games)]
+    run_line = [f"-1.5 (+{180 + (i % 3) * 20})" for i in range(num_games)]
+    total_ou = [f"Over {8 + (i % 3)} (-110)" for i in range(num_games)]
+    win_probability = [round(0.5 + (i % 2) * 0.1, 2) for i in range(num_games)]
+    expected_value = [f"+{round(5 + (i % 3), 2)}%" for i in range(num_games)]
+
+    # Check if all columns are of the same length
+    lengths = [len(moneyline_odds), len(run_line), len(total_ou), len(win_probability), len(expected_value)]
+    if len(set(lengths)) != 1:
+        st.error("Error: Column lengths do not match!")
+        raise ValueError("Mismatch in column lengths")
+
     odds_data = {
         "Game": games,
-        "Moneyline Odds": [f"+{120 + (i % 3) * 10}" for i in range(num_games)],
-        "Run Line": [f"-1.5 (+{180 + (i % 3) * 20})" for i in range(num_games)],
-        "Total (O/U)": [f"Over {8 + (i % 3)} (-110)" for i in range(num_games)],
-        "Win Probability": [round(0.5 + (i % 2) * 0.1, 2) for i in range(num_games)],
-        "Expected Value": [f"+{round(5 + (i % 3), 2)}%" for i in range(num_games)]  # Added dynamic Expected Value
+        "Moneyline Odds": moneyline_odds,
+        "Run Line": run_line,
+        "Total (O/U)": total_ou,
+        "Win Probability": win_probability,
+        "Expected Value": expected_value
     }
-
-    # Debugging: Check the lengths of each list
-    for column_name, column_data in odds_data.items():
-        st.write(f"Length of '{column_name}': {len(column_data)}")
-
-    # Ensure all columns have the same length
-    if len(set(len(col) for col in odds_data.values())) != 1:
-        st.error("Error: The lengths of the columns are not consistent!")
-        raise ValueError("Mismatch in column lengths")
 
     return pd.DataFrame(odds_data)
 
@@ -69,6 +72,3 @@ except ValueError as e:
 # Additional insights
 st.subheader("Betting Insights")
 st.write("The model evaluates moneyline, run line, and totals based on team and player performance.")
-
-# Footer
-st.write("Data sourced from DraftKings and MLB API. Bet responsibly!")
