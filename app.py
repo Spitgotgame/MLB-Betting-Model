@@ -50,6 +50,19 @@ def fetch_odds():
         st.error("Error: Column lengths do not match!")
         raise ValueError("Mismatch in column lengths")
 
+    # Padding columns with None if they are shorter than the games list
+    while len(moneyline_odds) < num_games:
+        moneyline_odds.append("-")
+    while len(run_line) < num_games:
+        run_line.append("-")
+    while len(total_ou) < num_games:
+        total_ou.append("-")
+    while len(win_probability) < num_games:
+        win_probability.append("-")
+    while len(expected_value) < num_games:
+        expected_value.append("-")
+
+    # Create the final dictionary
     odds_data = {
         "Game": games,
         "Moneyline Odds": moneyline_odds,
