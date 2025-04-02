@@ -29,6 +29,11 @@ def fetch_odds():
     # Debugging: Print lengths of all lists
     st.write(f"Number of games: {num_games}")
 
+    # Check if there are any games, otherwise handle the case where no data is available
+    if num_games == 0:
+        st.error("No games available for today.")
+        return pd.DataFrame()  # Return an empty DataFrame if no games found
+
     # Create dynamic odds data
     moneyline_odds = [f"+{120 + (i % 3) * 10}" for i in range(num_games)]
     run_line = [f"-1.5 (+{180 + (i % 3) * 20})" for i in range(num_games)]
@@ -36,17 +41,10 @@ def fetch_odds():
     win_probability = [round(0.5 + (i % 2) * 0.1, 2) for i in range(num_games)]
     expected_value = [f"+{round(5 + (i % 3), 2)}%" for i in range(num_games)]
 
-    # Debugging: Check lengths of each list
-    st.write(f"Length of moneyline_odds: {len(moneyline_odds)}")
-    st.write(f"Length of run_line: {len(run_line)}")
-    st.write(f"Length of total_ou: {len(total_ou)}")
-    st.write(f"Length of win_probability: {len(win_probability)}")
-    st.write(f"Length of expected_value: {len(expected_value)}")
+    # Ensure all lists are padded to the same length as `games`
+    max_length = len(games)
 
-    # Ensure that all columns have the same length
-    max_length = max(len(moneyline_odds), len(run_line), len(total_ou), len(win_probability), len(expected_value), num_games)
-
-    # Padding columns with None if they are shorter than the max length
+    # Pad lists if necessary (if they are shorter than the max length)
     while len(moneyline_odds) < max_length:
         moneyline_odds.append("-")
     while len(run_line) < max_length:
@@ -58,14 +56,7 @@ def fetch_odds():
     while len(expected_value) < max_length:
         expected_value.append("-")
 
-    # Check lengths after padding
-    st.write(f"Final Length of moneyline_odds: {len(moneyline_odds)}")
-    st.write(f"Final Length of run_line: {len(run_line)}")
-    st.write(f"Final Length of total_ou: {len(total_ou)}")
-    st.write(f"Final Length of win_probability: {len(win_probability)}")
-    st.write(f"Final Length of expected_value: {len(expected_value)}")
-
-    # Create the final dictionary
+    # Create the final dictionary with padded lists
     odds_data = {
         "Game": games,
         "Moneyline Odds": moneyline_odds,
@@ -75,18 +66,15 @@ def fetch_odds():
         "Expected Value": expected_value
     }
 
-    # Debugging: Print the lengths of each column in the DataFrame
-    st.write(f"Length of DataFrame: {len(odds_data['Game'])}")
-    for col in odds_data:
-        st.write(f"Length of '{col}': {len(odds_data[col])}")
-
+    # Create the DataFrame
     return pd.DataFrame(odds_data)
 
 # Fetch and display data
 try:
     odds_df = fetch_odds()
-    st.subheader("Best MLB Bets Today")
-    st.dataframe(odds_df)
+    if not odds_df.empty:
+        st.subheader("Best MLB Bets Today")
+        st.dataframe(odds_df)
 except ValueError as e:
     st.error(f"Error: {str(e)}")
 
