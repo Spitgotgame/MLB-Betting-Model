@@ -55,6 +55,9 @@ def fetch_odds():
     df["Expected Value"].fillna(0, inplace=True)
     df["Win Probability"].fillna(0, inplace=True)
 
+    # Ensure that the 'Expected Value' column is a valid numeric type
+    df["Expected Value"] = pd.to_numeric(df["Expected Value"], errors='coerce')
+
     # Debugging: Check the data types after conversion
     st.write("Data types after conversion:")
     st.write(df.dtypes)
@@ -67,12 +70,15 @@ def fetch_odds():
 # Fetch and display data
 odds_df = fetch_odds()
 
-# Ensure 'Expected Value' column is numeric and filter for positive expected values
+# Filter for positive expected values and sort them
+odds_df = odds_df[odds_df["Expected Value"] > 0]
+
+# Double check that 'Expected Value' column is now numeric and sorted
 odds_df["Expected Value"] = pd.to_numeric(odds_df["Expected Value"], errors='coerce')
 odds_df["Expected Value"].fillna(0, inplace=True)
 
-# Filter and sort the dataframe to show only positive expected values
-odds_df = odds_df[odds_df["Expected Value"] > 0].sort_values(by="Expected Value", ascending=False)
+# Sort the dataframe based on Expected Value
+odds_df = odds_df.sort_values(by="Expected Value", ascending=False)
 
 # Show filtered and sorted dataframe
 st.subheader("Best MLB Bets Today")
