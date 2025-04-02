@@ -1,44 +1,26 @@
-import streamlit as st
-import pandas as pd
-import requests
-
-# Title
-st.title("MLB Betting Model - DraftKings")
-
-# Function to fetch live MLB matchups
-def fetch_live_games():
-    url = "https://statsapi.mlb.com/api/v1/schedule?sportId=1"
-    response = requests.get(url)
-    games = []
-
-    if response.status_code == 200:
-        data = response.json()
-        if "dates" in data:
-            for date in data["dates"]:
-                for game in date.get("games", []):
-                    home = game["teams"]["home"]["team"]["name"]
-                    away = game["teams"]["away"]["team"]["name"]
-                    games.append(f"{away} vs {home}")
-    return games
-
 # Function to fetch odds (placeholder, replace with actual API if available)
 def fetch_odds():
     games = fetch_live_games()
     num_games = len(games)
 
-    # Check if there are no games available
     if num_games == 0:
-        st.error("No games available for today.")
-        return None  # Return None if no games are found
+        return pd.DataFrame({
+            "Game": ["No games available"], 
+            "Moneyline Odds": ["-"], 
+            "Run Line": ["-"], 
+            "Total (O/U)": ["-"], 
+            "Win Probability": ["-"], 
+            "Expected Value": ["-"]
+        })
 
-    # Create dynamic odds data
-    moneyline_odds = [f"+{120 + (i % 3) * 10}" for i in range(num_games)]
-    run_line = [f"-1.5 (+{180 + (i % 3) * 20})" for i in range(num_games)]
-    total_ou = [f"Over {8 + (i % 3)} (-110)" for i in range(num_games)]
+    # Generate placeholder odds dynamically based on the number of games
+    moneyline_odds = ["+120" if i % 2 == 0 else "-150" for i in range(num_games)]
+    run_line = ["-1.5 (+180)" if i % 2 == 0 else "+1.5 (-140)" for i in range(num_games)]
+    total_ou = ["Over 8.5 (-110)" if i % 2 == 0 else "Under 9.5 (-105)" for i in range(num_games)]
     win_probability = [round(0.5 + (i % 2) * 0.1, 2) for i in range(num_games)]
-    expected_value = [f"+{round(5 + (i % 3), 2)}%" for i in range(num_games)]
+    expected_value = ["+5.2%" if i % 2 == 0 else "-2.3%" for i in range(num_games)]
 
-    # Check if the lengths of all lists match
+    # Debugging: Log list lengths before creating DataFrame
     list_lengths = {
         "games": len(games),
         "moneyline_odds": len(moneyline_odds),
@@ -47,30 +29,13 @@ def fetch_odds():
         "win_probability": len(win_probability),
         "expected_value": len(expected_value),
     }
+    
+    st.write("List lengths:", list_lengths)  # Debugging output in Streamlit
 
-    st.write("List lengths before padding:", list_lengths)
+    # Ensure all lists are the same length before creating DataFrame
+    assert all(len(lst) == num_games for lst in [moneyline_odds, run_line, total_ou, win_probability, expected_value]), "List lengths do not match!"
 
-    # Ensure all lists are padded to the same length as `games`
-    max_length = len(games)
-    lists_to_pad = [moneyline_odds, run_line, total_ou, win_probability, expected_value]
-
-    # Pad lists if necessary
-    for lst in lists_to_pad:
-        while len(lst) < max_length:
-            lst.append("-")
-
-    # Verify padding worked
-    list_lengths_after_padding = {
-        "moneyline_odds": len(moneyline_odds),
-        "run_line": len(run_line),
-        "total_ou": len(total_ou),
-        "win_probability": len(win_probability),
-        "expected_value": len(expected_value),
-    }
-
-    st.write("List lengths after padding:", list_lengths_after_padding)
-
-    # Create the final dictionary with padded lists
+    # Create DataFrame
     odds_data = {
         "Game": games,
         "Moneyline Odds": moneyline_odds,
@@ -80,22 +45,4 @@ def fetch_odds():
         "Expected Value": expected_value
     }
 
-    return odds_data
-
-# Fetch and display data
-odds_data = fetch_odds()
-
-# Only proceed with creating DataFrame if odds data exists
-if odds_data:
-    odds_df = pd.DataFrame(odds_data)
-    st.subheader("Best MLB Bets Today")
-    st.dataframe(odds_df)
-else:
-    st.error("No data to display.")
-    
-# Additional insights
-st.subheader("Betting Insights")
-st.write("The model evaluates moneyline, run line, and totals based on team and player performance.")
-
-# Footer
-st.write("Data sourced from DraftKings and MLB API. Bet responsibly!")
+    return pd.DataFrame(odds_data)
