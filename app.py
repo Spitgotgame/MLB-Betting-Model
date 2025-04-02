@@ -50,7 +50,7 @@ def fetch_odds():
     
     if response.status_code == 200:
         data = response.json()
-        for game in data:
+        for i, game in enumerate(data):
             home_team = game['home_team']
             away_team = game['away_team']
             moneyline_odds = {book['title']: book['odds']['h2h'] for book in game['bookmakers']}
